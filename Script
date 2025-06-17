@@ -1,0 +1,99 @@
+-- 🛡️ APZ.XX SCRIPTS COPIER by AGHA 🛡️
+-- ✅ Password Protected + Dump + SaveInstance + Auto-Disconnect
+
+if not writefile or not saveinstance then
+    return warn("❌ Your executor doesn't support writefile() or saveinstance()!")
+end
+
+local password = "APZ_PAID_0001"
+local maxTries = 3
+local tries = 0
+
+local Players = game:GetService("Players")
+local LP = Players.LocalPlayer
+local GUI = Instance.new("ScreenGui", LP:WaitForChild("PlayerGui"))
+GUI.Name = "APZ_GUI"
+
+local Frame = Instance.new("Frame", GUI)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -75)
+Frame.Size = UDim2.new(0, 300, 0, 150)
+Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Frame.Active = true
+Frame.Draggable = true
+
+Instance.new("UICorner", Frame)
+
+local Box = Instance.new("TextBox", Frame)
+Box.PlaceholderText = "Enter Password"
+Box.Position = UDim2.new(0.1, 0, 0.3, 0)
+Box.Size = UDim2.new(0.8, 0, 0.2, 0)
+Box.TextScaled = true
+Box.Text = ""
+Box.BackgroundColor3 = Color3.fromRGB(40,40,40)
+Box.TextColor3 = Color3.fromRGB(255,255,255)
+Box.Font = Enum.Font.Code
+
+local Btn = Instance.new("TextButton", Frame)
+Btn.Text = "Unlock"
+Btn.Size = UDim2.new(0.6, 0, 0.2, 0)
+Btn.Position = UDim2.new(0.2, 0, 0.65, 0)
+Btn.BackgroundColor3 = Color3.fromRGB(0,150,0)
+Btn.TextColor3 = Color3.fromRGB(255,255,255)
+Btn.Font = Enum.Font.SourceSansBold
+Btn.TextScaled = true
+
+-- Notify function
+local function notify(text)
+	local hint = Instance.new("Hint", workspace)
+	hint.Text = text
+	task.wait(3)
+	hint:Destroy()
+end
+
+local function unlock()
+	GUI:Destroy()
+	
+	-- Dump scripts
+	local dumped = 0
+	for _, obj in ipairs(getgc(true)) do
+		if typeof(obj) == "function" and islclosure(obj) and not isexecutorclosure(obj) then
+			local info = debug.getinfo(obj)
+			if info.name then
+				local success, result = pcall(function()
+					return decompile(obj)
+				end)
+				if success and result and type(result) == "string" then
+					writefile("APZ_DUMP_"..info.name..".lua", result)
+					dumped += 1
+				end
+			end
+		end
+	end
+	
+	-- SaveInstance
+	pcall(function()
+		saveinstance("APZ_GameSave_"..game.PlaceId..".rbxlx")
+	end)
+
+	-- Notify and disconnect
+	notify("✅ Copied The Game Successfully")
+	task.wait(1)
+	game:Shutdown()
+end
+
+Btn.MouseButton1Click:Connect(function()
+	if Box.Text == password then
+		unlock()
+	else
+		tries += 1
+		Btn.Text = "❌ Wrong!"
+		Btn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+		task.wait(1)
+		Btn.Text = "Unlock"
+		Btn.BackgroundColor3 = Color3.fromRGB(0,150,0)
+		if tries >= maxTries then
+			GUI:Destroy()
+			warn("🚫 Access Denied. Too many attempts.")
+		end
+	end
+end)
