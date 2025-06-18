@@ -1,5 +1,5 @@
--- APZ.XX Custom Copier 💾🔐
--- v1.7 - Password Button Added + Avatar + Effects
+-- APZ.XX Custom Copier 📎s🔐
+-- v2.0 - Full Copier Logic, Avatar, UI, Particles, Snapshot Save
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
@@ -25,63 +25,53 @@ else
     gui.Parent = CoreGui
 end
 
-local particle = Instance.new("ParticleEmitter")
-particle.Texture = "rbxassetid://296874871"
-particle.Rate = 10
-particle.Lifetime = NumberRange.new(2)
-particle.Speed = NumberRange.new(1, 2)
-particle.VelocitySpread = 180
-particle.Enabled = true
+-- Password System
+local password = "APZ_PAID"
+local passwordPassed = false
 
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 480, 0, 220)
-mainFrame.Position = UDim2.new(0.5, -240, 0.5, -110)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainFrame.BackgroundTransparency = 0.05
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Name = "MainFrame"
-mainFrame.Parent = gui
+local passFrame = Instance.new("Frame")
+passFrame.Size = UDim2.new(0, 300, 0, 180)
+passFrame.Position = UDim2.new(0.5, -150, 0.5, -90)
+passFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+passFrame.BackgroundTransparency = 0.05
+passFrame.Parent = gui
 
--- Avatar Icon
-local avatarImage = Instance.new("ImageLabel")
-avatarImage.Size = UDim2.new(0, 70, 0, 70)
-avatarImage.Position = UDim2.new(0, 5, 0, 5)
-avatarImage.BackgroundTransparency = 1
-avatarImage.Image = "rbxassetid://17272412977"
-avatarImage.Parent = mainFrame
+local passTitle = Instance.new("TextLabel", passFrame)
+passTitle.Size = UDim2.new(1, 0, 0, 40)
+passTitle.BackgroundColor3 = Color3.fromRGB(30,30,30)
+passTitle.Text = "🔒 Enter Password"
+passTitle.TextColor3 = Color3.new(1,1,1)
+passTitle.Font = Enum.Font.Code
+passTitle.TextSize = 20
 
-local particlePart = Instance.new("Part")
-particlePart.Anchored = true
-particlePart.CanCollide = false
-particlePart.Transparency = 1
-particlePart.Size = Vector3.new(1,1,1)
-particlePart.Parent = workspace
-particle:Clone().Parent = particlePart
+local passBox = Instance.new("TextBox", passFrame)
+passBox.Size = UDim2.new(1, -40, 0, 40)
+passBox.Position = UDim2.new(0, 20, 0, 60)
+passBox.PlaceholderText = "Enter Password Here"
+passBox.Text = ""
+passBox.TextColor3 = Color3.new(1,1,1)
+passBox.BackgroundColor3 = Color3.fromRGB(35,35,35)
+passBox.Font = Enum.Font.Code
+passBox.TextSize = 18
 
-local titleBar = Instance.new("TextLabel", mainFrame)
-titleBar.Size = UDim2.new(1, 0, 0, 40)
-titleBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
-titleBar.Text = "💾 APZ.XX Custom Copier 🔐"
-titleBar.TextColor3 = Color3.new(1,1,1)
-titleBar.Font = Enum.Font.Code
-titleBar.TextSize = 20
+local submitBtn = Instance.new("TextButton", passFrame)
+submitBtn.Size = UDim2.new(0.5, -10, 0, 35)
+submitBtn.Position = UDim2.new(0.25, 0, 1, -45)
+submitBtn.Text = "✅ Submit"
+submitBtn.TextColor3 = Color3.new(1,1,1)
+submitBtn.BackgroundColor3 = Color3.fromRGB(30, 130, 30)
+submitBtn.Font = Enum.Font.Code
+submitBtn.TextSize = 18
 
-titleBar.MouseEnter:Connect(function()
-    particlePart.Position = LP.Character and LP.Character:FindFirstChild("Head") and LP.Character.Head.Position + Vector3.new(0, 5, 0) or Vector3.new(0, 20, 0)
-end)
-
--- Get Password Button
-local getPass = Instance.new("TextButton")
-getPass.Size = UDim2.new(0, 200, 0, 35)
-getPass.Position = UDim2.new(0.5, -100, 1, -45)
+local getPass = Instance.new("TextButton", passFrame)
+getPass.Size = UDim2.new(0.5, -10, 0, 35)
+getPass.Position = UDim2.new(0.25, 0, 1, -5)
 getPass.Text = "🔑 Get Password"
 getPass.BackgroundColor3 = Color3.fromRGB(35,35,35)
 getPass.TextColor3 = Color3.fromRGB(255,255,255)
 getPass.Font = Enum.Font.Code
 getPass.TextSize = 18
-getPass.Parent = mainFrame
-
+getPass.Parent = passFrame
 getPass.MouseButton1Click:Connect(function()
     setclipboard("https://discord.gg/TxKEYk8HrF")
     StarterGui:SetCore("SendNotification", {
@@ -90,3 +80,113 @@ getPass.MouseButton1Click:Connect(function()
         Duration = 4
     })
 end)
+
+-- Main UI
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 480, 0, 220)
+mainFrame.Position = UDim2.new(0.5, -240, 0.5, -110)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Visible = false
+mainFrame.Parent = gui
+
+submitBtn.MouseButton1Click:Connect(function()
+    if passBox.Text == password then
+        passFrame.Visible = false
+        mainFrame.Visible = true
+        passwordPassed = true
+    else
+        StarterGui:SetCore("SendNotification", {
+            Title = "❌ Incorrect Password",
+            Text = "Try again or click Get Password",
+            Duration = 4
+        })
+    end
+end)
+
+-- Avatar
+local avatarImage = Instance.new("ImageLabel")
+avatarImage.Size = UDim2.new(0, 70, 0, 70)
+avatarImage.Position = UDim2.new(0, 5, 0, 5)
+avatarImage.BackgroundTransparency = 1
+avatarImage.Image = "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-0172E96EA7F9915A978CE9DF6959A945-Png/150/150/AvatarHeadshot/Webp/noFilter"
+avatarImage.Parent = mainFrame
+
+-- Particle Effect
+local particle = Instance.new("ParticleEmitter")
+particle.Texture = "rbxassetid://296874871"
+particle.Rate = 10
+particle.Lifetime = NumberRange.new(2)
+particle.Speed = NumberRange.new(1, 2)
+particle.VelocitySpread = 180
+particle.Enabled = true
+
+local particlePart = Instance.new("Part")
+particlePart.Anchored = true
+particlePart.CanCollide = false
+particlePart.Transparency = 1
+particlePart.Size = Vector3.new(1,1,1)
+particlePart.Position = Vector3.new(0, 20, 0)
+particlePart.Parent = workspace
+particle:Clone().Parent = particlePart
+
+-- Copier Button
+local copyBtn = Instance.new("TextButton", mainFrame)
+copyBtn.Size = UDim2.new(0.6, 0, 0, 50)
+copyBtn.Position = UDim2.new(0.2, 0, 0.8, -25)
+copyBtn.Text = "📥 Save / Copy Game"
+copyBtn.BackgroundColor3 = Color3.fromRGB(80, 170, 80)
+copyBtn.TextColor3 = Color3.new(1,1,1)
+copyBtn.Font = Enum.Font.Code
+copyBtn.TextSize = 20
+
+copyBtn.MouseButton1Click:Connect(function()
+    local ok, info = pcall(function() return MarketplaceService:GetProductInfo(game.PlaceId) end)
+    local name = (ok and info.Name or "UnknownGame"):gsub("%W", "_")
+    local id = tostring(game.GameId):sub(1,8)
+    local filename = string.format("apzsaves_%s_%s", name, id)
+
+    -- Dump local + module scripts
+    local scripts = {}
+    for _, obj in ipairs(game:GetDescendants()) do
+        if obj:IsA("LocalScript") or obj:IsA("ModuleScript") then
+            pcall(function()
+                scripts[obj:GetFullName()] = obj.Source
+            end)
+        end
+    end
+    writefile(filename .. "_scripts.json", HttpService:JSONEncode(scripts))
+
+    -- Snapshot saveinstance (universal)
+    local snap = loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/UniversalSynSaveInstance/refs/heads/main/saveinstance.lua"))
+    if snap then
+        snap({
+            FileName = filename..".rbxlx",
+            Decompile = true,
+            IncludeReplicatedFirst = true,
+            IncludeReplicatedStorage = true,
+            IncludeWorkspace = true,
+            IncludeServerStorage = true,
+            IncludeServerScriptService = true
+        })
+    end
+
+    StarterGui:SetCore("SendNotification", {
+        Title = "✅ Game Copied",
+        Text = "Saved to workspace folder.",
+        Duration = 6
+    })
+    wait(2)
+    game:Shutdown()
+end)
+
+-- Title
+local titleBar = Instance.new("TextLabel", mainFrame)
+titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
+titleBar.Text = "📎s APZ.XX Custom Copier 🔐"
+titleBar.TextColor3 = Color3.new(1,1,1)
+titleBar.Font = Enum.Font.Code
+titleBar.TextSize = 20
