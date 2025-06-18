@@ -1,5 +1,5 @@
 -- APZ.XX Custom Copier 📎s🔐
--- v2.0 - Full Copier Logic, Avatar, UI, Particles, Snapshot Save
+-- v2.2 - SaveInstance + Auto Disconnect
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
@@ -9,8 +9,6 @@ local TweenService = game:GetService("TweenService")
 local StarterGui = game:GetService("StarterGui")
 
 local LP = Players.LocalPlayer
-local Clock = os.clock
-local function ts(s) return string.format("⏱ %.2fs", Clock() - s) end
 
 -- GUI Setup
 local gui = Instance.new("ScreenGui")
@@ -71,7 +69,6 @@ getPass.BackgroundColor3 = Color3.fromRGB(35,35,35)
 getPass.TextColor3 = Color3.fromRGB(255,255,255)
 getPass.Font = Enum.Font.Code
 getPass.TextSize = 18
-getPass.Parent = passFrame
 getPass.MouseButton1Click:Connect(function()
     setclipboard("https://discord.gg/TxKEYk8HrF")
     StarterGui:SetCore("SendNotification", {
@@ -148,21 +145,12 @@ copyBtn.MouseButton1Click:Connect(function()
     local id = tostring(game.GameId):sub(1,8)
     local filename = string.format("apzsaves_%s_%s", name, id)
 
-    -- Dump local + module scripts
-    local scripts = {}
-    for _, obj in ipairs(game:GetDescendants()) do
-        if obj:IsA("LocalScript") or obj:IsA("ModuleScript") then
-            pcall(function()
-                scripts[obj:GetFullName()] = obj.Source
-            end)
-        end
-    end
-    writefile(filename .. "_scripts.json", HttpService:JSONEncode(scripts))
+    local success, snapFunc = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/UniversalSynSaveInstance/main/saveinstance.lua"))
+    end)
 
-    -- Snapshot saveinstance (universal)
-    local snap = loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/UniversalSynSaveInstance/refs/heads/main/saveinstance.lua"))
-    if snap then
-        snap({
+    if success and snapFunc then
+        snapFunc()({
             FileName = filename..".rbxlx",
             Decompile = true,
             IncludeReplicatedFirst = true,
@@ -171,15 +159,22 @@ copyBtn.MouseButton1Click:Connect(function()
             IncludeServerStorage = true,
             IncludeServerScriptService = true
         })
-    end
 
-    StarterGui:SetCore("SendNotification", {
-        Title = "✅ Game Copied",
-        Text = "Saved to workspace folder.",
-        Duration = 6
-    })
-    wait(2)
-    game:Shutdown()
+        StarterGui:SetCore("SendNotification", {
+            Title = "✅ Game Saved",
+            Text = "Snapshot saved as .rbxlx! Disconnecting...",
+            Duration = 6
+        })
+
+        task.wait(2)
+        Players.LocalPlayer:Kick("✅ Successfully Copied! Thanks for using APZ Copier!")
+    else
+        StarterGui:SetCore("SendNotification", {
+            Title = "❌ Snapshot Failed",
+            Text = "SaveInstance module failed to load.",
+            Duration = 6
+        })
+    end
 end)
 
 -- Title
