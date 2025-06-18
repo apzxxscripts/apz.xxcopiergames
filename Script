@@ -1,99 +1,173 @@
--- 🛡️ APZ.XX SCRIPTS COPIER by AGHA 🛡️
--- ✅ Password Protected + Dump + SaveInstance + Auto-Disconnect
-
-if not writefile or not saveinstance then
-    return warn("❌ Your executor doesn't support writefile() or saveinstance()!")
-end
-
-local password = "APZ_PAID_0001"
-local maxTries = 3
-local tries = 0
+-- APZ.XX Custom Copier 💾🔐
+-- v1.5 - Universal Exploit Support + Writefile Compatibility
 
 local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local TweenService = game:GetService("TweenService")
+
 local LP = Players.LocalPlayer
-local GUI = Instance.new("ScreenGui", LP:WaitForChild("PlayerGui"))
-GUI.Name = "APZ_GUI"
+local Clock = os.clock
+local function ts(s) return string.format("⏱ %.2fs", Clock() - s) end
 
-local Frame = Instance.new("Frame", GUI)
-Frame.Position = UDim2.new(0.5, -150, 0.5, -75)
-Frame.Size = UDim2.new(0, 300, 0, 150)
-Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Frame.Active = true
-Frame.Draggable = true
-
-Instance.new("UICorner", Frame)
-
-local Box = Instance.new("TextBox", Frame)
-Box.PlaceholderText = "Enter Password"
-Box.Position = UDim2.new(0.1, 0, 0.3, 0)
-Box.Size = UDim2.new(0.8, 0, 0.2, 0)
-Box.TextScaled = true
-Box.Text = ""
-Box.BackgroundColor3 = Color3.fromRGB(40,40,40)
-Box.TextColor3 = Color3.fromRGB(255,255,255)
-Box.Font = Enum.Font.Code
-
-local Btn = Instance.new("TextButton", Frame)
-Btn.Text = "Unlock"
-Btn.Size = UDim2.new(0.6, 0, 0.2, 0)
-Btn.Position = UDim2.new(0.2, 0, 0.65, 0)
-Btn.BackgroundColor3 = Color3.fromRGB(0,150,0)
-Btn.TextColor3 = Color3.fromRGB(255,255,255)
-Btn.Font = Enum.Font.SourceSansBold
-Btn.TextScaled = true
-
--- Notify function
-local function notify(text)
-	local hint = Instance.new("Hint", workspace)
-	hint.Text = text
-	task.wait(3)
-	hint:Destroy()
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "APZ_XX_Custom_Copier"
+gui.ResetOnSpawn = false
+if syn and syn.protect_gui then
+    syn.protect_gui(gui)
+    gui.Parent = CoreGui
+elseif gethui then
+    gui.Parent = gethui()
+else
+    gui.Parent = CoreGui
 end
 
-local function unlock()
-	GUI:Destroy()
-	
-	-- Dump scripts
-	local dumped = 0
-	for _, obj in ipairs(getgc(true)) do
-		if typeof(obj) == "function" and islclosure(obj) and not isexecutorclosure(obj) then
-			local info = debug.getinfo(obj)
-			if info.name then
-				local success, result = pcall(function()
-					return decompile(obj)
-				end)
-				if success and result and type(result) == "string" then
-					writefile("APZ_DUMP_"..info.name..".lua", result)
-					dumped += 1
-				end
-			end
-		end
-	end
-	
-	-- SaveInstance
-	pcall(function()
-		saveinstance("APZ_GameSave_"..game.PlaceId..".rbxlx")
-	end)
+local mainFrame = Instance.new("Frame", gui)
+mainFrame.Size = UDim2.new(0, 480, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -240, 0.5, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Name = "MainFrame"
 
-	-- Notify and disconnect
-	notify("✅ Copied The Game Successfully")
-	task.wait(1)
-	game:Shutdown()
+local titleBar = Instance.new("TextLabel", mainFrame)
+titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
+titleBar.Text = "💾 APZ.XX Custom Copier 🔐"
+titleBar.TextColor3 = Color3.new(1,1,1)
+titleBar.Font = Enum.Font.Code
+titleBar.TextSize = 20
+
+local closeButton = Instance.new("TextButton", mainFrame)
+closeButton.Size = UDim2.new(0, 40, 0, 40)
+closeButton.Position = UDim2.new(1, -40, 0, 0)
+closeButton.Text = "❌"
+closeButton.BackgroundColor3 = Color3.fromRGB(60,0,0)
+closeButton.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+local minimizeButton = Instance.new("TextButton", mainFrame)
+minimizeButton.Size = UDim2.new(0, 40, 0, 40)
+minimizeButton.Position = UDim2.new(1, -80, 0, 0)
+minimizeButton.Text = "➖"
+minimizeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+
+local minimized = false
+minimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    for _,v in ipairs(mainFrame:GetChildren()) do
+        if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then
+            if v ~= titleBar and v ~= closeButton and v ~= minimizeButton then
+                v.Visible = not minimized
+            end
+        end
+    end
+end)
+
+local passwordBox = Instance.new("TextBox", mainFrame)
+passwordBox.Size = UDim2.new(0.8, 0, 0, 40)
+passwordBox.Position = UDim2.new(0.1, 0, 0, 60)
+passwordBox.PlaceholderText = "Enter Password 🔑"
+passwordBox.Font = Enum.Font.Code
+passwordBox.TextColor3 = Color3.new(1,1,1)
+passwordBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+
+local statusLabel = Instance.new("TextLabel", mainFrame)
+statusLabel.Size = UDim2.new(1, 0, 0, 30)
+statusLabel.Position = UDim2.new(0, 0, 0, 110)
+statusLabel.Text = "💡 Waiting for action..."
+statusLabel.TextColor3 = Color3.new(1,1,1)
+statusLabel.Font = Enum.Font.Code
+statusLabel.TextScaled = true
+statusLabel.BackgroundTransparency = 1
+
+local startButton = Instance.new("TextButton", mainFrame)
+startButton.Size = UDim2.new(0.5, 0, 0, 40)
+startButton.Position = UDim2.new(0.25, 0, 0, 150)
+startButton.Text = "💾 Save / Copy Game"
+startButton.Font = Enum.Font.Code
+startButton.TextColor3 = Color3.new(1,1,1)
+startButton.BackgroundColor3 = Color3.fromRGB(0,100,0)
+
+-- File Naming
+local function safe(r) return r:GetFullName():gsub("[^%w_]", "_") end
+local function genFile(base, ext)
+    local ok, info = pcall(function() return MarketplaceService:GetProductInfo(game.PlaceId) end)
+    local name = (ok and info.Name or "UnknownGame"):gsub("%W","_")
+    local id = tostring(game.GameId):sub(1,8)
+    local f = string.format("apzsaves_%s_%s.%s", name, id, ext)
+    local i, try = 1, f
+    while isfile and isfile(try) do
+        try = string.format("%s_%d.%s", f:sub(1,#f-#ext-1), i, ext)
+        i += 1
+    end
+    return try
 end
 
-Btn.MouseButton1Click:Connect(function()
-	if Box.Text == password then
-		unlock()
-	else
-		tries += 1
-		Btn.Text = "❌ Wrong!"
-		Btn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-		task.wait(1)
-		Btn.Text = "Unlock"
-		Btn.BackgroundColor3 = Color3.fromRGB(0,150,0)
-		if tries >= maxTries then
-			GUI:Destroy()
-			warn("🚫 Access Denied. Too many attempts.")
-		end
-	end
+-- Dump Scripts
+local function dumpScripts()
+    local scripts = {}
+    for _, obj in ipairs(game:GetDescendants()) do
+        if obj:IsA("LocalScript") or obj:IsA("ModuleScript") or obj:IsA("Script") then
+            pcall(function()
+                scripts[obj:GetFullName()] = obj.Source
+            end)
+        end
+    end
+    writefile(genFile("scripts", "json"), HttpService:JSONEncode(scripts))
+end
+
+-- Game Copier
+local function copyFullGame()
+    statusLabel.Text = "📦 Saving full game..."
+    local ok, save = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/UniversalSynSaveInstance/main/saveinstance.lua"))()
+    end)
+    if ok then
+        save({
+            FileName = genFile("FULL_GAME", "rbxlx"),
+            SaveScript = true,
+            SaveInstance = true,
+            Decompile = true,
+            IncludeWorkspace = true,
+            IncludeLighting = true,
+            IncludeReplicatedFirst = true,
+            IncludeReplicatedStorage = true,
+            IncludeServerScriptService = true,
+            IncludeServerStorage = true,
+            IncludeStarterGui = true,
+            IncludeStarterPack = true,
+            IncludeSoundService = true,
+            IncludeTeams = true
+        })
+        dumpScripts()
+        statusLabel.Text = "✅ Game + Scripts Saved!"
+        local tween = TweenService:Create(statusLabel, TweenInfo.new(0.5, Enum.EasingStyle.Bounce), {
+            TextColor3 = Color3.fromRGB(100,255,100)
+        })
+        tween:Play()
+    else
+        statusLabel.Text = "❌ Failed to save game."
+        local tween = TweenService:Create(statusLabel, TweenInfo.new(0.5, Enum.EasingStyle.Bounce), {
+            TextColor3 = Color3.fromRGB(255,100,100)
+        })
+        tween:Play()
+    end
+end
+
+-- Start Logic
+startButton.MouseButton1Click:Connect(function()
+    if passwordBox.Text ~= "APZ_PAID" then
+        statusLabel.Text = "🔒 Wrong Password!"
+        return
+    end
+    statusLabel.Text = "⚙️ Copying full game..."
+    task.wait(1)
+    copyFullGame()
+    task.wait(1)
+    statusLabel.Text = "🎉 Done! Game copied."
 end)
