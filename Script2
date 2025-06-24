@@ -1,0 +1,58 @@
+local password = "APZ_PAID"
+local attempts = 0
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "APZ_NO_SCRIPTS"
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 400, 0, 200)
+frame.Position = UDim2.new(0.5, -200, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+frame.Active = true
+frame.Draggable = true
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 35)
+title.Text = "📁 APZ.XX COPIER - No Scripts"
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundColor3 = Color3.fromRGB(40,40,40)
+
+local input = Instance.new("TextBox", frame)
+input.Size = UDim2.new(1, -20, 0, 30)
+input.Position = UDim2.new(0, 10, 0, 45)
+input.PlaceholderText = "Enter Password"
+input.Text = ""
+input.TextColor3 = Color3.new(1,1,1)
+input.BackgroundColor3 = Color3.fromRGB(35,35,35)
+
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(1, -20, 0, 35)
+button.Position = UDim2.new(0, 10, 0, 85)
+button.Text = "Unlock & Copy (No Scripts)"
+button.TextColor3 = Color3.new(1,1,1)
+button.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+
+local function shutdown()
+	game:Shutdown()
+end
+
+button.MouseButton1Click:Connect(function()
+	if input.Text == password then
+		local saveinstance = loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.luau"))()
+		saveinstance({
+			FileName = "APZXX_NoScripts_"..game.PlaceId..".rbxlx",
+			Decompile = false,
+			IncludeScripts = false,
+			CreatorTag = "Copied by APZ.XX COPIER"
+		})
+		wait(1.5)
+		shutdown()
+	else
+		attempts += 1
+		title.Text = "❌ Wrong Password ("..attempts.."/3)"
+		if attempts >= 3 then
+			gui:Destroy()
+		end
+	end
+end)
