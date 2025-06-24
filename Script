@@ -1,187 +1,66 @@
--- APZ.XX Custom Copier 📎s🔐
--- v2.2 - SaveInstance + Auto Disconnect
+local mt = getrawmetatable(game)
+setreadonly(mt, false)
 
-local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
-local HttpService = game:GetService("HttpService")
-local MarketplaceService = game:GetService("MarketplaceService")
-local TweenService = game:GetService("TweenService")
-local StarterGui = game:GetService("StarterGui")
+local oldNamecall = mt.__namecall
+mt.__namecall = newcclosure(function(self, ...)
+	local method = getnamecallmethod()
+	if method == "Kick" or method == "kick" then
+		return warn("⚠️ Kick attempt blocked.")
+	elseif tostring(self):lower():find("ban") then
+		return warn("⚠️ Ban attempt blocked.")
+	end
+	return oldNamecall(self, ...)
+end)
 
-local LP = Players.LocalPlayer
+-- 📦 Dump logic in Decompiler Tab
+local function dumpScriptsAndSave()
+	local HttpService = game:GetService("HttpService")
+	local MarketplaceService = game:GetService("MarketplaceService")
 
--- GUI Setup
-local gui = Instance.new("ScreenGui")
-gui.Name = "APZ_XX_Custom_Copier"
-gui.ResetOnSpawn = false
-if syn and syn.protect_gui then
-    syn.protect_gui(gui)
-    gui.Parent = CoreGui
-elseif gethui then
-    gui.Parent = gethui()
-else
-    gui.Parent = CoreGui
+	-- Generate filename
+	local function genFile(base, ext)
+		local ok, info = pcall(function()
+			return MarketplaceService:GetProductInfo(game.PlaceId)
+		end)
+		local name = (ok and info.Name or "UnknownGame"):gsub("%W","_")
+		local id = tostring(game.GameId):sub(1,8)
+		local f = string.format("%s_%s_%s.%s", base, name, id, ext)
+		local i, try = 1, f
+		while isfile and isfile(try) do
+			try = string.format("%s_%d.%s", f:sub(1,#f-#ext-1), i, ext)
+			i += 1
+		end
+		return try
+	end
+
+	-- Dump all scripts
+	local scripts = {}
+	for _, obj in ipairs(game:GetDescendants()) do
+		if obj:IsA("LocalScript") or obj:IsA("ModuleScript") then
+			pcall(function()
+				scripts[obj:GetFullName()] = obj.Source
+			end)
+		end
+	end
+	writefile(genFile("ClientScripts", "json"), HttpService:JSONEncode(scripts))
+
+	-- Save full game instance
+	local ok, result = pcall(function()
+		saveinstance(genFile("FullGame", "rbxlx"))
+	end)
+	
+	if ok then
+		warn("✅ Decompile & Save complete!")
+	else
+		warn("❌ saveinstance() failed")
+	end
 end
 
--- Password System
-local password = "APZ_PAID"
-local passwordPassed = false
-
-local passFrame = Instance.new("Frame")
-passFrame.Size = UDim2.new(0, 300, 0, 180)
-passFrame.Position = UDim2.new(0.5, -150, 0.5, -90)
-passFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-passFrame.BackgroundTransparency = 0.05
-passFrame.Parent = gui
-
-local passTitle = Instance.new("TextLabel", passFrame)
-passTitle.Size = UDim2.new(1, 0, 0, 40)
-passTitle.BackgroundColor3 = Color3.fromRGB(30,30,30)
-passTitle.Text = "🔒 Enter Password"
-passTitle.TextColor3 = Color3.new(1,1,1)
-passTitle.Font = Enum.Font.Code
-passTitle.TextSize = 20
-
-local passBox = Instance.new("TextBox", passFrame)
-passBox.Size = UDim2.new(1, -40, 0, 40)
-passBox.Position = UDim2.new(0, 20, 0, 60)
-passBox.PlaceholderText = "Enter Password Here"
-passBox.Text = ""
-passBox.TextColor3 = Color3.new(1,1,1)
-passBox.BackgroundColor3 = Color3.fromRGB(35,35,35)
-passBox.Font = Enum.Font.Code
-passBox.TextSize = 18
-
-local submitBtn = Instance.new("TextButton", passFrame)
-submitBtn.Size = UDim2.new(0.5, -10, 0, 35)
-submitBtn.Position = UDim2.new(0.25, 0, 1, -45)
-submitBtn.Text = "✅ Submit"
-submitBtn.TextColor3 = Color3.new(1,1,1)
-submitBtn.BackgroundColor3 = Color3.fromRGB(30, 130, 30)
-submitBtn.Font = Enum.Font.Code
-submitBtn.TextSize = 18
-
-local getPass = Instance.new("TextButton", passFrame)
-getPass.Size = UDim2.new(0.5, -10, 0, 35)
-getPass.Position = UDim2.new(0.25, 0, 1, -5)
-getPass.Text = "🔑 Get Password"
-getPass.BackgroundColor3 = Color3.fromRGB(35,35,35)
-getPass.TextColor3 = Color3.fromRGB(255,255,255)
-getPass.Font = Enum.Font.Code
-getPass.TextSize = 18
-getPass.MouseButton1Click:Connect(function()
-    setclipboard("https://discord.gg/TxKEYk8HrF")
-    StarterGui:SetCore("SendNotification", {
-        Title = "Password Link Copied!",
-        Text = "🔗 Join Discord to get password.",
-        Duration = 4
-    })
-end)
-
--- Main UI
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 480, 0, 220)
-mainFrame.Position = UDim2.new(0.5, -240, 0.5, -110)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainFrame.BackgroundTransparency = 0.05
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Visible = false
-mainFrame.Parent = gui
-
-submitBtn.MouseButton1Click:Connect(function()
-    if passBox.Text == password then
-        passFrame.Visible = false
-        mainFrame.Visible = true
-        passwordPassed = true
-    else
-        StarterGui:SetCore("SendNotification", {
-            Title = "❌ Incorrect Password",
-            Text = "Try again or click Get Password",
-            Duration = 4
-        })
-    end
-end)
-
--- Avatar
-local avatarImage = Instance.new("ImageLabel")
-avatarImage.Size = UDim2.new(0, 70, 0, 70)
-avatarImage.Position = UDim2.new(0, 5, 0, 5)
-avatarImage.BackgroundTransparency = 1
-avatarImage.Image = "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-0172E96EA7F9915A978CE9DF6959A945-Png/150/150/AvatarHeadshot/Webp/noFilter"
-avatarImage.Parent = mainFrame
-
--- Particle Effect
-local particle = Instance.new("ParticleEmitter")
-particle.Texture = "rbxassetid://296874871"
-particle.Rate = 10
-particle.Lifetime = NumberRange.new(2)
-particle.Speed = NumberRange.new(1, 2)
-particle.VelocitySpread = 180
-particle.Enabled = true
-
-local particlePart = Instance.new("Part")
-particlePart.Anchored = true
-particlePart.CanCollide = false
-particlePart.Transparency = 1
-particlePart.Size = Vector3.new(1,1,1)
-particlePart.Position = Vector3.new(0, 20, 0)
-particlePart.Parent = workspace
-particle:Clone().Parent = particlePart
-
--- Copier Button
-local copyBtn = Instance.new("TextButton", mainFrame)
-copyBtn.Size = UDim2.new(0.6, 0, 0, 50)
-copyBtn.Position = UDim2.new(0.2, 0, 0.8, -25)
-copyBtn.Text = "📥 Save / Copy Game"
-copyBtn.BackgroundColor3 = Color3.fromRGB(80, 170, 80)
-copyBtn.TextColor3 = Color3.new(1,1,1)
-copyBtn.Font = Enum.Font.Code
-copyBtn.TextSize = 20
-
-copyBtn.MouseButton1Click:Connect(function()
-    local ok, info = pcall(function() return MarketplaceService:GetProductInfo(game.PlaceId) end)
-    local name = (ok and info.Name or "UnknownGame"):gsub("%W", "_")
-    local id = tostring(game.GameId):sub(1,8)
-    local filename = string.format("apzsaves_%s_%s", name, id)
-
-    local success, snapFunc = pcall(function()
-        return loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/UniversalSynSaveInstance/main/saveinstance.lua"))
-    end)
-
-    if success and snapFunc then
-        snapFunc()({
-            FileName = filename..".rbxlx",
-            Decompile = true,
-            IncludeReplicatedFirst = true,
-            IncludeReplicatedStorage = true,
-            IncludeWorkspace = true,
-            IncludeServerStorage = true,
-            IncludeServerScriptService = true
-        })
-
-        StarterGui:SetCore("SendNotification", {
-            Title = "✅ Game Saved",
-            Text = "Snapshot saved as .rbxlx! Disconnecting...",
-            Duration = 6
-        })
-
-        task.wait(2)
-        Players.LocalPlayer:Kick("✅ Successfully Copied! Thanks for using APZ Copier!")
-    else
-        StarterGui:SetCore("SendNotification", {
-            Title = "❌ Snapshot Failed",
-            Text = "SaveInstance module failed to load.",
-            Duration = 6
-        })
-    end
-end)
-
--- Title
-local titleBar = Instance.new("TextLabel", mainFrame)
-titleBar.Size = UDim2.new(1, 0, 0, 40)
-titleBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
-titleBar.Text = "📎s APZ.XX Custom Copier 🔐"
-titleBar.TextColor3 = Color3.new(1,1,1)
-titleBar.Font = Enum.Font.Code
-titleBar.TextSize = 20
+-- 🧠 Hook Decompiler tab to actual function
+local decompilerBtn = buttons["Decompiler"]
+if decompilerBtn then
+	decompilerBtn.MouseButton1Click:Connect(function()
+		task.wait(0.5)
+		dumpScriptsAndSave()
+	end)
+end
