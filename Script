@@ -1,52 +1,58 @@
---[[ APZ.XX Full Game Copier | Made by agha_yt1x (xddollersw) ]]
-local A,B,C,D,E=game:GetService("Players"),game:GetService("HttpService"),game:GetService("CoreGui"),game:GetService("UserInputService"),game:GetService("RunService")local F=A.LocalPlayer
-local G=Instance.new("\83\99\114\101\101\110\71\117\105",C)G.Name="AXX_GUI_"..math.random(1000,9999)
-local H=Instance.new("\70\114\97\109\101",G)H.Size=UDim2.new(0,520,0,320)H.Position=UDim2.new(.5,-260,.5,-160)H.BackgroundColor3=Color3.fromRGB(22,22,22)H.BorderSizePixel=0
-local I=Instance.new("\84\101\120\116\76\97\98\101\108",H)I.Size=UDim2.new(1,0,.15,0)I.BackgroundTransparency=1 I.Text="\240\159\166\139 AXX Game Copier (Full Lua Dump)"I.TextColor3=Color3.new(1,1,1)I.Font=Enum.Font.GothamBold I.TextScaled=true
-local J=Instance.new("\84\101\120\116\76\97\98\101\108",H)J.Position=UDim2.new(0,0,.15,0)J.Size=UDim2.new(1,0,.1,0)J.BackgroundTransparency=1 J.Text="Waiting to extract..."J.TextColor3=Color3.new(0.8,0.8,0.8)J.Font=Enum.Font.Gotham J.TextScaled=true
-local K=Instance.new("\84\101\120\116\66\117\116\116\111\110",H)K.Position=UDim2.new(.3,0,.8,0)K.Size=UDim2.new(.4,0,.12,0)K.BackgroundColor3=Color3.fromRGB(0,200,80)K.Text="\240\159\147\168 Copy Game"K.Font=Enum.Font.GothamBold K.TextColor3=Color3.new(1,1,1)K.TextScaled=true
+local password = "APZ_PAID"
+local attempts = 0
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "APZ_WITH_SCRIPTS"
 
-local function L()
-	J.Text="\240\159\148\141 Copying game scripts..."task.wait(0.3)
-	local M,N={},[[--[[ 🧠 AXX Game Lua Dump (by agha_yt1x)
-📦 Recreated from client-side only.
-❌ ServerScripts / ServerStorage excluded.
---]]]]
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 400, 0, 200)
+frame.Position = UDim2.new(0.5, -200, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+frame.Active = true
+frame.Draggable = true
 
-	for _,O in ipairs(game:GetDescendants())do
-		pcall(function()
-			if O:IsA("LocalScript")or O:IsA("ModuleScript")then
-				local P="-- "..O:GetFullName().."\n"..O.Source
-				table.insert(M,P)
-			end
-		end)
-	end
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 35)
+title.Text = "🧠 APZ.XX COPIER - With Scripts"
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundColor3 = Color3.fromRGB(40,40,40)
 
-	local Q=N.."\n\n"..table.concat(M,"\n\n")
-	setclipboard(Q)
-	J.Text="\226\156\150 Copied successfully. Disconnecting..."
+local input = Instance.new("TextBox", frame)
+input.Size = UDim2.new(1, -20, 0, 30)
+input.Position = UDim2.new(0, 10, 0, 45)
+input.PlaceholderText = "Enter Password"
+input.Text = ""
+input.TextColor3 = Color3.new(1,1,1)
+input.BackgroundColor3 = Color3.fromRGB(35,35,35)
 
-	task.delay(2,function()
-		F:Kick("✅ Full Game Dumped to Clipboard")
-	end)
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(1, -20, 0, 35)
+button.Position = UDim2.new(0, 10, 0, 85)
+button.Text = "Unlock & Copy"
+button.TextColor3 = Color3.new(1,1,1)
+button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+
+local function shutdown()
+	game:Shutdown()
 end
 
-K.MouseButton1Click:Connect(L)
-
--- Drag
-local R,S,T,U=nil,.25,nil,nil
-H.InputBegan:Connect(function(V)
-	if V.UserInputType==Enum.UserInputType.MouseButton1 then
-		R=true;U=V.Position;T=H.Position
-		V.Changed:Connect(function()
-			if V.UserInputState==Enum.UserInputState.End then R=false end
-		end)
-	end
-end)
-H.InputChanged:Connect(function(V)if V.UserInputType==Enum.UserInputType.MouseMovement then S=V end end)
-D.InputChanged:Connect(function(V)
-	if V==S and R then
-		local W=V.Position-U
-		H.Position=UDim2.new(T.X.Scale,T.X.Offset+W.X,T.Y.Scale,T.Y.Offset+W.Y)
+button.MouseButton1Click:Connect(function()
+	if input.Text == password then
+		local saveinstance = loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.luau"))()
+		saveinstance({
+			FileName = "APZXX_FullCopy_"..game.PlaceId..".rbxlx",
+			Decompile = true,
+			IncludeScripts = true,
+			CreatorTag = "Copied by APZ.XX COPIER"
+		})
+		wait(1.5)
+		shutdown()
+	else
+		attempts += 1
+		title.Text = "❌ Wrong Password ("..attempts.."/3)"
+		if attempts >= 3 then
+			gui:Destroy()
+		end
 	end
 end)
