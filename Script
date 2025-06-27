@@ -1,58 +1,153 @@
 local password = "APZ_PAID"
 local attempts = 0
-local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "APZ_WITH_SCRIPTS"
 
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 400, 0, 200)
-frame.Position = UDim2.new(0.5, -200, 0.5, -100)
-frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+-- Create GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "APZ_WITH_SCRIPTS"
+gui.Parent = game.CoreGui
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 440, 0, 280)
+frame.Position = UDim2.new(0.5, -220, 0.5, -140)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
+frame.Parent = gui
 
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 35)
-title.Text = "🧠 APZ.XX COPIER - With Scripts"
-title.Font = Enum.Font.SourceSansBold
+-- UI Corner
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 8)
+
+-- Title Label
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 50)
+title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+title.Text = "🧠 APZ.XX DECOMPILER – WITH SCRIPTS"
+title.Font = Enum.Font.GothamBold
 title.TextSize = 20
-title.TextColor3 = Color3.new(1,1,1)
-title.BackgroundColor3 = Color3.fromRGB(40,40,40)
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Parent = frame
 
-local input = Instance.new("TextBox", frame)
-input.Size = UDim2.new(1, -20, 0, 30)
-input.Position = UDim2.new(0, 10, 0, 45)
-input.PlaceholderText = "Enter Password"
+local titleCorner = Instance.new("UICorner", title)
+titleCorner.CornerRadius = UDim.new(0, 8)
+
+-- Password Input
+local input = Instance.new("TextBox")
+input.Size = UDim2.new(1, -40, 0, 35)
+input.Position = UDim2.new(0, 20, 0, 65)
+input.PlaceholderText = "🔒 Enter Password"
 input.Text = ""
-input.TextColor3 = Color3.new(1,1,1)
-input.BackgroundColor3 = Color3.fromRGB(35,35,35)
+input.Font = Enum.Font.Gotham
+input.TextSize = 16
+input.TextColor3 = Color3.new(1, 1, 1)
+input.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+input.ClearTextOnFocus = false
+input.Parent = frame
 
-local button = Instance.new("TextButton", frame)
-button.Size = UDim2.new(1, -20, 0, 35)
-button.Position = UDim2.new(0, 10, 0, 85)
-button.Text = "Unlock & Copy"
-button.TextColor3 = Color3.new(1,1,1)
+local inputCorner = Instance.new("UICorner", input)
+inputCorner.CornerRadius = UDim.new(0, 4)
+
+-- Unlock Button
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(1, -40, 0, 40)
+button.Position = UDim2.new(0, 20, 0, 115)
+button.Text = "🔓 Unlock"
+button.Font = Enum.Font.GothamBold
+button.TextSize = 18
+button.TextColor3 = Color3.new(1, 1, 1)
 button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+button.Parent = frame
 
+local buttonCorner = Instance.new("UICorner", button)
+buttonCorner.CornerRadius = UDim.new(0, 4)
+
+-- Copy Button (hidden by default)
+local copyButton = Instance.new("TextButton")
+copyButton.Size = UDim2.new(1, -40, 0, 40)
+copyButton.Position = UDim2.new(0, 20, 0, 165)
+copyButton.Text = "📁 Copy with Scripts!"
+copyButton.Font = Enum.Font.GothamBold
+copyButton.TextSize = 18
+copyButton.TextColor3 = Color3.new(1, 1, 1)
+copyButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+copyButton.Visible = false
+copyButton.Parent = frame
+
+local copyCorner = Instance.new("UICorner", copyButton)
+copyCorner.CornerRadius = UDim.new(0, 4)
+
+-- Status Label
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -40, 0, 30)
+status.Position = UDim2.new(0, 20, 0, 215)
+status.BackgroundTransparency = 1
+status.Text = "🔧 Status: Waiting for password..."
+status.Font = Enum.Font.Gotham
+status.TextSize = 14
+status.TextColor3 = Color3.fromRGB(180, 180, 180)
+status.TextXAlignment = Enum.TextXAlignment.Left
+status.Parent = frame
+
+-- Footer Label
+local footer = Instance.new("TextLabel")
+footer.Size = UDim2.new(1, 0, 0, 30)
+footer.Position = UDim2.new(0, 0, 1, -30)
+footer.BackgroundTransparency = 1
+footer.Text = "⚠️ 3 Attempts Only | Made by APZ.XX"
+footer.Font = Enum.Font.Gotham
+footer.TextSize = 14
+footer.TextColor3 = Color3.fromRGB(180, 180, 180)
+footer.Parent = frame
+
+-- Shutdown Function
 local function shutdown()
 	game:Shutdown()
 end
 
+-- Unlock Button Functionality
 button.MouseButton1Click:Connect(function()
 	if input.Text == password then
+		title.Text = "✅ Access Granted"
+		status.Text = "🔓 Unlocked. Click 'Copy with Scripts!'"
+		button.Visible = false
+		input.Visible = false
+		copyButton.Visible = true
+	else
+		attempts += 1
+		status.Text = "❌ Wrong Password ("..attempts.."/3)"
+		if attempts >= 3 then
+			title.Text = "⛔ Too Many Failed Attempts"
+			wait(1)
+			gui:Destroy()
+		end
+	end
+end)
+
+-- Copy Button Functionality
+copyButton.MouseButton1Click:Connect(function()
+	status.Text = "📁 Copying game with scripts..."
+
+	local success, err = pcall(function()
 		local saveinstance = loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.luau"))()
 		saveinstance({
 			FileName = "APZXX_FullCopy_"..game.PlaceId..".rbxlx",
 			Decompile = true,
 			IncludeScripts = true,
-			CreatorTag = "Copied by APZ.XX COPIER"
+			CreatorTag = "Copied by APZ.XX COPIER | THANKS FOR BUYING & USING OUR DECOMPILER"
 		})
-		wait(1.5)
-		shutdown()
-	else
-		attempts += 1
-		title.Text = "❌ Wrong Password ("..attempts.."/3)"
-		if attempts >= 3 then
-			gui:Destroy()
-		end
+
+		-- Auto discount / thank you message saved in file as placeholder text
+		writefile("APZXX_DiscountNote.txt", "🎉 THANKS FOR BUYING & USING OUR DECOMPILER – Next Purchase: 20% OFF!")
+
+		status.Text = "✅ Game copied & saved. Thank you for your support!"
+	end)
+
+	if not success then
+		status.Text = "❌ Failed to copy game: "..tostring(err)
 	end
+
+	wait(2)
+	shutdown()
 end)
