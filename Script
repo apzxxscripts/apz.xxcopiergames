@@ -3,7 +3,7 @@ local attempts = 0
 
 -- Create GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "APZ_WITH_SCRIPTS"
+gui.Name = "APZ_PREMIUM_DECOMPILER"
 gui.Parent = game.CoreGui
 
 -- Main Frame
@@ -16,15 +16,14 @@ frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
--- UI Corner
 local corner = Instance.new("UICorner", frame)
 corner.CornerRadius = UDim.new(0, 8)
 
--- Title Label
+-- Title
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 50)
 title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-title.Text = "🧠 APZ.XX DECOMPILER – WITH SCRIPTS"
+title.Text = "🧠 APZ.XX DECOMPILER PREMIUM"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 title.TextColor3 = Color3.new(1, 1, 1)
@@ -33,7 +32,7 @@ title.Parent = frame
 local titleCorner = Instance.new("UICorner", title)
 titleCorner.CornerRadius = UDim.new(0, 8)
 
--- Password Input
+-- Input
 local input = Instance.new("TextBox")
 input.Size = UDim2.new(1, -40, 0, 35)
 input.Position = UDim2.new(0, 20, 0, 65)
@@ -63,7 +62,7 @@ button.Parent = frame
 local buttonCorner = Instance.new("UICorner", button)
 buttonCorner.CornerRadius = UDim.new(0, 4)
 
--- Copy Button (hidden by default)
+-- Copy Button (hidden)
 local copyButton = Instance.new("TextButton")
 copyButton.Size = UDim2.new(1, -40, 0, 40)
 copyButton.Position = UDim2.new(0, 20, 0, 165)
@@ -90,7 +89,7 @@ status.TextColor3 = Color3.fromRGB(180, 180, 180)
 status.TextXAlignment = Enum.TextXAlignment.Left
 status.Parent = frame
 
--- Footer Label
+-- Footer
 local footer = Instance.new("TextLabel")
 footer.Size = UDim2.new(1, 0, 0, 30)
 footer.Position = UDim2.new(0, 0, 1, -30)
@@ -101,12 +100,7 @@ footer.TextSize = 14
 footer.TextColor3 = Color3.fromRGB(180, 180, 180)
 footer.Parent = frame
 
--- Shutdown Function
-local function shutdown()
-	game:Shutdown()
-end
-
--- Unlock Button Functionality
+-- Unlock Button Function
 button.MouseButton1Click:Connect(function()
 	if input.Text == password then
 		title.Text = "✅ Access Granted"
@@ -125,7 +119,7 @@ button.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Copy Button Functionality
+-- Copy Button Function
 copyButton.MouseButton1Click:Connect(function()
 	status.Text = "📁 Copying game with scripts..."
 
@@ -135,11 +129,8 @@ copyButton.MouseButton1Click:Connect(function()
 			FileName = "APZXX_FullCopy_"..game.PlaceId..".rbxlx",
 			Decompile = true,
 			IncludeScripts = true,
-			CreatorTag = "Copied by APZ.XX COPIER | THANKS FOR BUYING & USING OUR DECOMPILER"
+			CreatorTag = "Copied by APZ.XX PREMIUM | Thanks for buying!"
 		})
-
-		-- Auto discount / thank you message saved in file as placeholder text
-		writefile("APZXX_DiscountNote.txt", "🎉 THANKS FOR BUYING & USING OUR DECOMPILER – Next Purchase: 20% OFF!")
 
 		status.Text = "✅ Game copied & saved. Thank you for your support!"
 	end)
@@ -149,5 +140,6 @@ copyButton.MouseButton1Click:Connect(function()
 	end
 
 	wait(2)
-	shutdown()
+	-- Optional shutdown if supported
+	-- pcall(function() game:Shutdown() end)
 end)
