@@ -1,1 +1,167 @@
+--[[
+APZXX_Ultramaxed - Encrypted & Obfuscated Final Edition
+--]]
 
+local TweenService = game:GetService("TweenService")
+
+local encodedUsers = {
+	"bWF0dHkxOm1hdHR5QDEyM3wxMDAw",
+	"QUdIQTphZG1pbkAxMjM0fDEwMDAw"
+}
+
+local function decodeUser(encoded)
+	local decoded = string.split(game:GetService("HttpService"):Base64Decode(encoded), "|")
+	return decoded[1], { password = decoded[2], credits = tonumber(decoded[3]) }
+end
+
+local users = {}
+for _, v in ipairs(encodedUsers) do
+	local name, data = decodeUser(v)
+	users[name] = data
+end
+
+local loggedInUser = nil
+local creditLabel = nil
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "APZXX_Ultramaxed"
+gui.ResetOnSpawn = false
+gui.Parent = game.CoreGui
+
+local function createCorner(parent, radius)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, radius)
+	corner.Parent = parent
+end
+
+local function createStroke(parent, thickness, color)
+	local stroke = Instance.new("UIStroke")
+	stroke.Thickness = thickness
+	stroke.Color = color
+	stroke.Parent = parent
+end
+
+local function addGradient(parent, colors)
+	local gradient = Instance.new("UIGradient")
+	gradient.Color = ColorSequence.new(colors)
+	gradient.Rotation = 45
+	gradient.Parent = parent
+end
+
+local function showLoader(parent)
+	local spinner = Instance.new("TextLabel")
+	spinner.Size = UDim2.new(1, -40, 0, 30)
+	spinner.Position = UDim2.new(0, 20, 0, 170)
+	spinner.BackgroundTransparency = 1
+	spinner.Font = Enum.Font.Gotham
+	spinner.TextSize = 16
+	spinner.TextColor3 = Color3.fromRGB(255, 255, 255)
+	spinner.Text = "🔄 Saving, please wait..."
+	spinner.Parent = parent
+
+	local dots = ""
+	spawn(function()
+		while spinner and spinner.Parent do
+			dots = dots == "..." and "" or dots .. "."
+			spinner.Text = "🔄 Saving, please wait" .. dots
+			wait(0.5)
+		end
+	end)
+	return spinner
+end
+
+local function launchCopier()
+	local copierGui = Instance.new("ScreenGui")
+	copierGui.Name = "CopierInterface"
+	copierGui.Parent = game.CoreGui
+
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Size = UDim2.new(0, 460, 0, 260)
+	mainFrame.Position = UDim2.new(0.5, -230, 0.5, -130)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	mainFrame.Parent = copierGui
+	createCorner(mainFrame, 14)
+	createStroke(mainFrame, 2, Color3.fromRGB(0, 255, 120))
+	addGradient(mainFrame, {
+		Color3.fromRGB(0, 255, 120),
+		Color3.fromRGB(0, 200, 180),
+		Color3.fromRGB(0, 255, 255)
+	})
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, 0, 0, 40)
+	title.Text = "🧠 APZXX ULTRA COPIER PANEL"
+	title.Font = Enum.Font.GothamBold
+	title.TextSize = 20
+	title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	title.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+	title.Parent = mainFrame
+	createCorner(title, 10)
+	createStroke(title, 1.2, Color3.fromRGB(0, 255, 170))
+	addGradient(title, {
+		Color3.fromRGB(0, 255, 200),
+		Color3.fromRGB(0, 180, 255)
+	})
+
+	creditLabel = Instance.new("TextLabel")
+	creditLabel.Size = UDim2.new(1, -40, 0, 22)
+	creditLabel.Position = UDim2.new(0, 20, 0, 45)
+	creditLabel.Text = "💳 Credits Left: " .. tostring(users[loggedInUser].credits)
+	creditLabel.Font = Enum.Font.Gotham
+	creditLabel.TextSize = 14
+	creditLabel.TextColor3 = Color3.fromRGB(0, 255, 180)
+	creditLabel.BackgroundTransparency = 1
+	creditLabel.TextXAlignment = Enum.TextXAlignment.Left
+	creditLabel.Parent = mainFrame
+
+	local copyBtn = Instance.new("TextButton")
+	copyBtn.Size = UDim2.new(1, -40, 0, 42)
+	copyBtn.Position = UDim2.new(0, 20, 0, 75)
+	copyBtn.Text = "📁 Copy & Fix Now"
+	copyBtn.Font = Enum.Font.GothamBold
+	copyBtn.TextSize = 18
+	copyBtn.TextColor3 = Color3.new(1, 1, 1)
+	copyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+	copyBtn.Parent = mainFrame
+	createCorner(copyBtn, 12)
+	createStroke(copyBtn, 1.5, Color3.fromRGB(0, 255, 130))
+
+	local status = Instance.new("TextLabel")
+	status.Size = UDim2.new(1, -40, 0, 30)
+	status.Position = UDim2.new(0, 20, 0, 125)
+	status.Text = "🔧 Awaiting user action..."
+	status.Font = Enum.Font.Gotham
+	status.TextSize = 14
+	status.TextColor3 = Color3.fromRGB(180, 255, 200)
+	status.BackgroundTransparency = 1
+	status.TextXAlignment = Enum.TextXAlignment.Left
+	status.Parent = mainFrame
+
+	copyBtn.MouseButton1Click:Connect(function()
+		if users[loggedInUser].credits <= 0 then
+			status.Text = "⚠️ No credits left. Contact 'AGHA_YT' on Discord to recharge."
+			return
+		end
+
+		users[loggedInUser].credits -= 1
+		creditLabel.Text = "💳 Credits Left: " .. tostring(users[loggedInUser].credits)
+		status.Text = "📦 Copying + fixing game..."
+		local spinner = showLoader(mainFrame)
+
+		local success, err = pcall(function()
+			local saveinstance = loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.luau"))()
+			saveinstance({
+				FileName = "APZXX_FixedCopy_"..game.PlaceId..".rbxlx",
+				Decompile = true,
+				IncludeScripts = true,
+				RemoveInstances = {"ParticleEmitter", "Trail", "Fire", "Smoke", "Explosion"},
+				FixInstances = true,
+				CreatorTag = "Copied by APZXX ULTRA MAX | Thank you for using premium."
+			})
+		end)
+
+		if spinner then spinner:Destroy() end
+
+		status.Text = success and "✅ Game copied & auto-fixed. Check output." or ("❌ Error: "..tostring(err))
+	end)
+end
